@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Anti Max — Мега-мессенджер</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif; }
+        body { height: 100vh; display: flex; justify-content: center; align-items: center; transition: all 0.2s; overflow: hidden; }
+        body.light { background: #eef2f5; }
+        body.dark { background: #0a0a0a; }
+        /* Анимации */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .app { width: 100%; max-width: 1500px; height: 100vh; display: flex; flex-direction: column; transition: all 0.2s; position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.2); }
+        body.light .app { background: #ffffff; }
+        body.dark .app { background: #17212b; }
+        /* Стильный градиентный хедер */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; backdrop-filter: blur(10px); background: rgba(23, 33, 43, 0.9); border-bottom: 1px solid rgba(255,255,255,0.08); }
+        body.light .header { background: rgba(255,255,255,0.9); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #ff416c, #ff4b2b, #f9d423); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -0.5px; }
+        .user-info { display: flex; gap: 12px; align-items: center; }
+        .glass-btn { background: rgba(255,255,255,0.1); border: none; padding: 6px 14px; border-radius: 30px; cursor: pointer; font-weight: 500; transition: 0.2s; backdrop-filter: blur(4px); }
+        body.light .glass-btn { background: rgba(0,0,0,0.05); color: #333; }
+        body.dark .glass-btn { color: #fff; }
+        .glass-btn:hover { transform: scale(1.02); background: rgba(255,255,255,0.2); }
+        .tabs { display: flex; padding: 0 24px; gap: 4px; border-bottom: 1px solid; overflow-x: auto; background: inherit; }
+        body.light .tabs { border-color: #e0e0e0; }
+        body.dark .tabs { border-color: #242f3d; }
+        .tab { padding: 14px 20px; cursor: pointer; font-weight: 600; font-size: 15px; transition: 0.2s; border-radius: 12px 12px 0 0; white-space: nowrap; }
+        body.light .tab { color: #5e6f8d; }
+        body.dark .tab { color: #8e9eae; }
+        .tab.active { background: rgba(106, 179, 243, 0.15); color: #6ab3f3; border-bottom: 3px solid #6ab3f3; }
+        .main-panel { display: flex; flex: 1; overflow: hidden; }
+        /* Боковая панель с неоновым акцентом */
+        .sidebar { width: 320px; border-right: 1px solid; overflow-y: auto; transition: 0.2s; }
+        body.light .sidebar { background: #fafbfc; border-color: #e2e8f0; }
+        body.dark .sidebar { background: #1e2a36; border-color: #2c3e50; }
+        .sidebar-header { padding: 18px 20px; font-weight: 700; font-size: 18px; display: flex; justify-content: space-between; }
+        .contact-item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; cursor: pointer; transition: 0.1s; border-radius: 12px; margin: 4px 12px; }
+        .contact-item:hover { background: rgba(106, 179, 243, 0.2); transform: scale(0.98); }
+        .contact-item.active { background: linear-gradient(95deg, #2b5278, #1e3a5f); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .contact-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: linear-gradient(145deg, #ff416c, #ff4b2b); display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; transition: 0.2s; border: 2px solid rgba(255,255,255,0.2); }
+        .contact-name { font-weight: 600; }
+        .add-contact { padding: 16px; display: flex; gap: 10px; border-top: 1px solid; margin-top: 8px; }
+        .add-contact input { flex: 1; padding: 12px; border-radius: 30px; border: none; outline: none; font-size: 14px; background: rgba(255,255,255,0.1); color: inherit; }
+        .add-contact button { background: #6ab3f3; border: none; padding: 0 20px; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; background-size: cover; background-position: center; }
+        .chat-header { display: flex; align-items: center; gap: 16px; padding: 16px 24px; border-bottom: 1px solid; backdrop-filter: blur(8px); }
+        .messages-container { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+        /* Новый дизайн сообщений с анимацией */
+        .message { max-width: 75%; padding: 10px 16px; border-radius: 22px; position: relative; word-wrap: break-word; animation: fadeIn 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .message-mine { align-self: flex-end; background: linear-gradient(115deg, #2b6e9e, #1e4e72); color: white; border-bottom-right-radius: 6px; }
+        .message-other { align-self: flex-start; background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); color: #f0f0f0; border-bottom-left-radius: 6px; }
+        body.light .message-other { background: #f0f2f5; color: #111; }
+        .message-sender { font-size: 11px; opacity: 0.75; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .message-text { font-size: 15px; line-height: 1.4; }
+        .message-time { font-size: 10px; text-align: right; margin-top: 5px; opacity: 0.6; display: flex; justify-content: flex-end; gap: 8px; }
+        .input-area { padding: 16px 24px; display: flex; gap: 12px; align-items: center; border-top: 1px solid; background: inherit; backdrop-filter: blur(10px); }
+        .input-area input { flex: 1; padding: 12px 20px; border-radius: 40px; border: none; outline: none; font-size: 15px; transition: 0.1s; background: rgba(255,255,255,0.1); color: inherit; }
+        .input-area input:focus { background: rgba(255,255,255,0.2); transform: scale(1.01); }
+        .input-area button { background: #6ab3f3; border: none; padding: 0 28px; border-radius: 40px; cursor: pointer; font-weight: bold; transition: 0.2s; height: 48px; font-size: 16px; }
+        .icon-btn { background: rgba(255,255,255,0.1); border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 20px; transition: 0.1s; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+        .emoji-panel, .sticker-panel { display: none; position: absolute; bottom: 80px; background: #1e2a36; border-radius: 28px; padding: 16px; width: 320px; flex-wrap: wrap; gap: 10px; z-index: 200; border: 1px solid #3a4a5a; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
+        body.light .emoji-panel { background: #fff; border: 1px solid #ccc; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(12px); }
+        .modal-content { background: rgba(23,33,43,0.95); border-radius: 40px; padding: 32px; width: 380px; text-align: center; color: white; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); }
+        body.light .modal-content { background: rgba(255,255,255,0.95); color: #111; }
+        .user-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 12px; border-radius: 20px; background: rgba(255,255,255,0.05); }
+        .ban-btn { background: #e53935; color: white; border: none; padding: 6px 16px; border-radius: 30px; cursor: pointer; }
+        /* Волшебные кнопки */
+        .magic-btn { background: linear-gradient(95deg, #ff416c, #ff4b2b); border: none; }
+        .splash { position: fixed; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #1a1a2e, #0a0a0a); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; color: white; transition: opacity 1s; }
+        .splash h1 { font-size: 72px; background: linear-gradient(135deg, #ff416c, #ff4b2b, #f9d423); -webkit-background-clip: text; background-clip: text; color: transparent; animation: pulse 1.2s infinite; }
+        @media (max-width: 700px) { .sidebar { width: 260px; } .message { max-width: 85%; } }
+    </style>
+</head>
+<body>
+<div id="splash" class="splash"><h1>Anti Max</h1><p>мега-мессенджер будущего</p></div>
+<div id="app" style="display: none;"></div>
+<script>
+// ---------- FIREBASE ----------
+const firebaseConfig = {
+    apiKey: "AIzaSyDYMrTNblBRXUsZoAa30JeSfGgfkXG4-P0",
+    authDomain: "animax-8a0d3.firebaseapp.com",
+    databaseURL: "https://animax-8a0d3-default-rtdb.firebaseio.com",
+    projectId: "animax-8a0d3",
+    storageBucket: "animax-8a0d3.firebasestorage.app",
+    messagingSenderId: "514071748113",
+    appId: "1:514071748113:web:4808891bacf94293d65bb0"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let currentUser = null, isAdmin = false, currentTab = "global", currentContact = null;
+let globalUnsub = null, privateUnsub = null;
+let theme = localStorage.getItem('theme') || 'dark';
+document.body.className = theme;
+
+// ========== АВТОРИЗАЦИЯ ==========
+async function initAdmin() {
+    const snap = await db.ref('users/admin').once('value');
+    if (!snap.exists()) await db.ref('users/admin').set({ password: "2505", role: "admin", banned: false, avatar: "👑", avatarBase64: null });
+}
+async function registerUser(login, password) {
+    const snap = await db.ref('users/' + login).once('value');
+    if (snap.exists()) return "Логин занят";
+    await db.ref('users/' + login).set({ password, role: "user", banned: false, avatar: "😀", avatarBase64: null });
+    return "OK";
+}
+async function loginUser(login, password) {
+    const snap = await db.ref('users/' + login).once('value');
+    if (!snap.exists()) return "Пользователь не найден";
+    const user = snap.val();
+    if (user.password !== password) return "Неверный пароль";
+    if (user.banned) return "Вы заблокированы";
+    return "OK";
+}
+async function getUserData(login) {
+    const snap = await db.ref('users/' + login).once('value');
+    return snap.val() || { avatar: "😀", banned: false };
+}
+async function getAllUsers() {
+    const snap = await db.ref('users').once('value');
+    const users = snap.val() || {};
+    return Object.entries(users).map(([login, data]) => ({ login, ...data }));
+}
+async function setUserBan(login, banned) { await db.ref('users/' + login + '/banned').set(banned); }
+async function getContacts(login) { const snap = await db.ref('users/' + login + '/contacts').once('value'); return snap.val() || []; }
+async function addContact(login, contactLogin) {
+    if (login === contactLogin) return "Нельзя себя";
+    const exists = await db.ref('users/' + contactLogin).once('value');
+    if (!exists.exists()) return "Пользователь не найден";
+    let contacts = await getContacts(login);
+    if (contacts.includes(contactLogin)) return "Уже в контактах";
+    contacts.push(contactLogin);
+    await db.ref('users/' + login + '/contacts').set(contacts);
+    return "OK";
+}
+async function updateUserAvatar(login, avatarEmoji, avatarBase64) {
+    await db.ref('users/' + login).update({ avatar: avatarEmoji, avatarBase64: avatarBase64 || null });
+}
+async function isUserBanned(login) { const snap = await db.ref('users/' + login + '/banned').once('value'); return snap.val() === true; }
+async function sendGlobalMessage(text) {
+    if (!currentUser || await isUserBanned(currentUser)) { alert("Вы заблокированы"); return; }
+    if (!text.trim()) return;
+    await db.ref('globalMessages').push({ from: currentUser, text: text.trim(), timestamp: Date.now(), type: 'text' });
+}
+async function sendPrivateMessage(to, text) {
+    if (!currentUser || await isUserBanned(currentUser)) return;
+    const chatId = [currentUser, to].sort().join('_');
+    await db.ref('privateMessages/' + chatId).push({ from: currentUser, to, text: text.trim(), timestamp: Date.now() });
+}
+function listenGlobalMessages(cb) { db.ref('globalMessages').on('value', snap => cb(snap.val() ? Object.values(snap.val()) : [])); }
+function listenPrivateMessages(other, cb) { const id = [currentUser, other].sort().join('_'); db.ref('privateMessages/' + id).on('value', snap => cb(snap.val() ? Object.values(snap.val()) : [])); }
+async function deleteGlobalMessage(key) { await db.ref('globalMessages/' + key).remove(); }
+async function getAllGlobalMessagesWithKeys() { const snap = await db.ref('globalMessages').once('value'); const v = snap.val(); return v ? Object.entries(v).map(([k,m])=>({key:k,...m})) : []; }
+
+// ========== ИННОВАЦИИ ==========
+// 1. ИИ-автоподсказки (простые фразы)
+const aiSuggestions = ["Привет! Как дела?", "Согласен 👍", "Спасибо!", "Отличный мессенджер", "Круто!"]; 
+function showAISuggestions(inputEl) {
+    let container = document.getElementById('aiSuggestPanel');
+    if (!container) { container = document.createElement('div'); container.id = 'aiSuggestPanel'; container.style.cssText = 'position:absolute; bottom:70px; left:20px; background:#2c3e50; border-radius:20px; padding:10px; display:flex; gap:8px; z-index:150; backdrop-filter:blur(8px);'; document.body.appendChild(container); }
+    container.innerHTML = aiSuggestions.map(s => `<button class="glass-btn" style="padding:6px 12px;">${s}</button>`).join('');
+    container.style.display = 'flex';
+    container.querySelectorAll('button').forEach(btn => btn.onclick = () => { inputEl.value = btn.innerText; container.style.display = 'none'; inputEl.focus(); });
+    setTimeout(() => { if(container) container.style.display = 'none'; }, 5000);
+}
+// 2. Анимированная печать (эффект "печатает")
+function showTypingIndicator(chatId) { /* упрощённо: шлём сигнал */ db.ref('typing/'+chatId).set(currentUser); setTimeout(()=> db.ref('typing/'+chatId).remove(), 2000); }
+function listenTyping(chatId, cb) { db.ref('typing/'+chatId).on('value', snap => { if(snap.val() && snap.val() !== currentUser) cb(snap.val()); }); }
+// 3. "Волшебная палочка" – случайный стикер/эффект
+const magicStickers = ["✨","🌟","💫","⚡","🔥","❤️","🎉","💎","🚀","🌈"];
+function sendMagicEffect() { const rand = magicStickers[Math.floor(Math.random()*magicStickers.length)]; return rand; }
+// 4. Голосовые сообщения (через Web Speech API) – упрощённо
+function startVoiceRecognition(inputEl) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert("Ваш браузер не поддерживает голосовой ввод"); return; }
+    const recognition = new SpeechRecognition(); recognition.lang = 'ru-RU'; recognition.interimResults = false;
+    recognition.start(); recognition.onresult = (e) => { inputEl.value = e.results[0][0].transcript; inputEl.focus(); };
+    recognition.onerror = () => alert("Не удалось распознать голос");
+}
+// 5. Темы оформления (градиентные обои)
+function setChatWallpaper(type) { localStorage.setItem('wallpaper', type); const area = document.querySelector('.chat-area'); if(area) area.style.backgroundImage = type === 'gradient' ? 'linear-gradient(145deg, #1a2a3a, #0f1a24)' : (type === 'forest' ? 'url(https://www.transparenttextures.com/patterns/forest.jpg)' : 'none'); }
+// 6. Реакции на сообщения (❤️)
+async function addReaction(msgId, chatType) { alert("Реакция добавлена (❤️) – будет в след. версии"); } // демо
+
+// ========== АДМИН-ПАНЕЛЬ С РАСШИРЕННЫМИ ВОЗМОЖНОСТЯМИ ==========
+async function renderAdminPanel() {
+    const panel = document.getElementById('mainPanel');
+    panel.innerHTML = `<div class="chat-area"><div class="chat-header">👑 Панель суперадмина</div><div class="messages-container" id="adminContainer"></div></div>`;
+    const container = document.getElementById('adminContainer');
+    const users = await getAllUsers();
+    container.innerHTML = '<h3>📋 Управление пользователями</h3>';
+    for(let u of users) {
+        const row = document.createElement('div'); row.className = 'user-row';
+        row.innerHTML = `<div><strong>${escapeHtml(u.login)}</strong> ${u.banned ? '🔴' : '🟢'}</div><div><button class="ban-btn" data-login="${u.login}" data-ban="${!u.banned}">${u.banned ? 'Разблокировать' : 'Заблокировать'}</button></div>`;
+        container.appendChild(row);
+    }
+    document.querySelectorAll('.ban-btn').forEach(btn => btn.addEventListener('click', async (e) => { const login=btn.dataset.login; const ban=btn.dataset.ban==='true'; await setUserBan(login, ban); renderAdminPanel(); }));
+    // глобальные сообщения
+    const globalMsgs = await getAllGlobalMessagesWithKeys();
+    container.innerHTML += '<h3>🌐 Сообщения общего чата</h3>';
+    for(let msg of globalMsgs) {
+        const d=document.createElement('div'); d.className='user-row'; d.innerHTML=`<div><b>${escapeHtml(msg.from)}:</b> ${escapeHtml(msg.text)}</div><button class="delete-msg-btn" data-key="${msg.key}">🗑</button>`;
+        container.appendChild(d);
+    }
+    document.querySelectorAll('.delete-msg-btn').forEach(btn => btn.addEventListener('click', async (e)=>{ await deleteGlobalMessage(btn.dataset.key); renderAdminPanel(); }));
+}
+// ========== UI ==========
+function renderGlobalChat() {
+    const panel = document.getElementById('mainPanel');
+    panel.innerHTML = `<div class="chat-area"><div class="chat-header">🌐 Общий чат</div><div class="messages-container" id="globalMessages"></div><div class="input-area" style="position:relative"><input type="text" id="globalInput" placeholder="Сообщение..."><button id="globalSend">➤</button><button class="icon-btn" id="aiSuggestBtn">🤖</button><button class="icon-btn" id="voiceBtn">🎤</button><button class="icon-btn magic-btn" id="magicBtn">✨</button></div></div>`;
+    if(globalUnsub) globalUnsub();
+    globalUnsub = listenGlobalMessages(msgs => {
+        const cont = document.getElementById('globalMessages'); if(!cont) return; cont.innerHTML = '';
+        msgs.forEach(msg => { const isMine = msg.from === currentUser; const div = document.createElement('div'); div.className = `message ${isMine ? 'message-mine' : 'message-other'}`; div.innerHTML = `<div class="message-sender">${escapeHtml(msg.from)}</div><div class="message-text">${escapeHtml(msg.text)}</div><div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>`; cont.appendChild(div); });
+        cont.scrollTop = cont.scrollHeight;
+    });
+    const input = document.getElementById('globalInput');
+    document.getElementById('globalSend').onclick = async () => { await sendGlobalMessage(input.value); input.value = ''; };
+    document.getElementById('aiSuggestBtn').onclick = () => showAISuggestions(input);
+    document.getElementById('voiceBtn').onclick = () => startVoiceRecognition(input);
+    document.getElementById('magicBtn').onclick = () => { const magic = sendMagicEffect(); sendGlobalMessage(magic); };
+}
+async function renderContactsTab() {
+    const contacts = await getContacts(currentUser);
+    const panel = document.getElementById('mainPanel');
+    panel.innerHTML = `<div class="sidebar"><div class="sidebar-header">📱 Контакты</div><div id="contactsList"></div><div class="add-contact"><input id="newContact" placeholder="Логин"><button id="addContactBtn">➕</button></div></div><div class="chat-area"><div class="chat-header"><div class="contact-avatar" id="chatAvatar">👤</div><div><div id="chatName">Выберите диалог</div><div id="chatStatus"></div></div><div style="margin-left:auto;"><button class="icon-btn" id="privateMagic">✨</button><button class="icon-btn" id="privateVoice">🎤</button></div></div><div class="messages-container" id="privateMessages"></div><div class="input-area"><input type="text" id="privateInput" placeholder="Сообщение..." disabled><button id="privateSend" disabled>➤</button><button class="icon-btn" id="privateAiBtn" disabled>🤖</button></div></div>`;
+    const contactsDiv = document.getElementById('contactsList');
+    contactsDiv.innerHTML = '';
+    for(let c of contacts) {
+        const userData = await getUserData(c);
+        const avatarHtml = userData.avatarBase64 ? `<img src="${userData.avatarBase64}" style="width:48px;height:48px;border-radius:50%;">` : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#ff416c,#ff4b2b);display:flex;align-items:center;justify-content:center;font-size:26px;">${userData.avatar||"😀"}</div>`;
+        const div = document.createElement('div'); div.className = `contact-item ${currentContact===c?'active':''}`; div.dataset.contact=c; div.innerHTML = `<div class="contact-avatar">${avatarHtml}</div><div class="contact-name">${escapeHtml(c)}</div>`; div.onclick = () => { currentContact=c; renderContactsTab(); }; contactsDiv.appendChild(div);
+    }
+    document.getElementById('addContactBtn').onclick = async () => { const inp=document.getElementById('newContact'); const res=await addContact(currentUser, inp.value.trim()); if(res==="OK"){ inp.value=''; renderContactsTab(); } else alert(res); };
+    if(currentContact){
+        document.getElementById('privateInput').disabled=false; document.getElementById('privateSend').disabled=false; document.getElementById('privateAiBtn').disabled=false;
+        const userData = await getUserData(currentContact);
+        document.getElementById('chatName').innerHTML = currentContact; document.getElementById('chatAvatar').innerHTML = userData.avatarBase64 ? `<img src="${userData.avatarBase64}" style="width:48px;">` : `<div style="font-size:32px;">${userData.avatar||"😀"}</div>`;
+        if(privateUnsub) privateUnsub();
+        privateUnsub = listenPrivateMessages(currentContact, (msgs) => {
+            const cont = document.getElementById('privateMessages'); if(!cont) return; cont.innerHTML='';
+            msgs.forEach(msg => { const isMine = msg.from === currentUser; const div = document.createElement('div'); div.className = `message ${isMine ? 'message-mine' : 'message-other'}`; div.innerHTML = `<div class="message-sender">${escapeHtml(msg.from)}</div><div class="message-text">${escapeHtml(msg.text)}</div><div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>`; cont.appendChild(div); });
+            cont.scrollTop = cont.scrollHeight;
+        });
+        const inpPrivate = document.getElementById('privateInput');
+        document.getElementById('privateSend').onclick = async () => { await sendPrivateMessage(currentContact, inpPrivate.value); inpPrivate.value=''; };
+        document.getElementById('privateAiBtn').onclick = () => showAISuggestions(inpPrivate);
+        document.getElementById('privateVoice').onclick = () => startVoiceRecognition(inpPrivate);
+        document.getElementById('privateMagic').onclick = () => { const m = sendMagicEffect(); sendPrivateMessage(currentContact, m); };
+    }
+}
+function showProfileModal() {
+    getUserData(currentUser).then(async data => {
+        const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display='flex';
+        modal.innerHTML = `<div class="modal-content"><h3>✨ Профиль</h3><div id="profileAvatar">${data.avatarBase64?`<img src="${data.avatarBase64}" style="width:100px;border-radius:50%;">`:`<div style="font-size:80px;">${data.avatar||"😀"}</div>`}</div><input type="file" id="avatarUpload" accept="image/*"><div style="margin:16px 0;">Выбери эмодзи:</div><div id="emojiSelect">${["😀","😎","🥷","🐱","🐼","🤖","👾","💎"].map(e=>`<span style="font-size:36px;cursor:pointer;margin:6px;" data-emoji="${e}">${e}</span>`).join('')}</div><button id="saveProfileBtn" class="glass-btn">Сохранить</button><button id="closeProfileBtn" class="glass-btn">Закрыть</button></div>`;
+        document.body.appendChild(modal);
+        let newAvatarEmoji = data.avatar, newBase64 = data.avatarBase64;
+        document.getElementById('avatarUpload').onchange = e => { const file=e.target.files[0]; if(file){ const reader = new FileReader(); reader.onload = ev => { newBase64=ev.target.result; document.getElementById('profileAvatar').innerHTML=`<img src="${newBase64}" style="width:100px;border-radius:50%;">`; }; reader.readAsDataURL(file); } };
+        document.querySelectorAll('#emojiSelect span').forEach(span => span.onclick = () => { newAvatarEmoji = span.dataset.emoji; document.getElementById('profileAvatar').innerHTML=`<div style="font-size:80px;">${newAvatarEmoji}</div>`; newBase64=null; });
+        document.getElementById('saveProfileBtn').onclick = async () => { await updateUserAvatar(currentUser, newAvatarEmoji, newBase64); alert("Аватар обновлён!"); modal.remove(); if(currentTab==='contacts') renderContactsTab(); };
+        document.getElementById('closeProfileBtn').onclick = () => modal.remove();
+    });
+}
+function renderApp() {
+    const appDiv = document.getElementById('app');
+    appDiv.innerHTML = `<div class="app"><div class="header"><div class="logo">✨ Anti Max</div><div class="user-info"><button class="glass-btn" id="themeToggle">🎨 Тема</button><button class="glass-btn" id="wallpaperBtn">🖼️ Обои</button><button class="glass-btn" id="profileBtn">👤</button><button class="glass-btn" id="logoutBtn">🚪</button></div></div><div class="tabs" id="tabsContainer"></div><div class="main-panel" id="mainPanel"></div></div>`;
+    const tabs = [{id:"global",name:"🌐 Общий чат"},{id:"contacts",name:"💬 Контакты"}]; if(isAdmin) tabs.push({id:"admin",name:"👑 Админ"});
+    document.getElementById('tabsContainer').innerHTML = tabs.map(t=>`<div class="tab ${currentTab===t.id?'active':''}" data-tab="${t.id}">${t.name}</div>`).join('');
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+    document.getElementById('themeToggle').onclick = () => { theme = theme==='dark'?'light':'dark'; document.body.className=theme; localStorage.setItem('theme',theme); };
+    document.getElementById('wallpaperBtn').onclick = () => { const w=prompt("Обои: default, gradient, forest"); if(w) setChatWallpaper(w); };
+    document.getElementById('profileBtn').onclick = showProfileModal;
+    document.getElementById('logoutBtn').onclick = logout;
+    if(currentTab === 'global') renderGlobalChat(); else if(currentTab === 'contacts') renderContactsTab(); else if(isAdmin && currentTab === 'admin') renderAdminPanel();
+}
+function switchTab(tab) { currentTab=tab; if(globalUnsub) globalUnsub(); if(privateUnsub) privateUnsub(); renderApp(); }
+async function logout() { if(globalUnsub) globalUnsub(); if(privateUnsub) privateUnsub(); currentUser=null; isAdmin=false; showLoginModal(); }
+function showLoginModal() {
+    const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display='flex';
+    modal.innerHTML = `<div class="modal-content"><h2>Anti Max</h2><div id="loginForm"><input id="loginName" placeholder="Логин"><input id="loginPass" type="password" placeholder="Пароль"><button id="doLoginBtn" class="glass-btn">Войти</button><a href="#" id="toReg">Регистрация</a><div id="loginError"></div></div><div id="regForm" style="display:none"><input id="regName" placeholder="Логин"><input id="regPass" type="password" placeholder="Пароль"><button id="doRegBtn" class="glass-btn">Зарегистрироваться</button><a href="#" id="toLogin">Вход</a><div id="regError"></div></div></div>`;
+    document.body.appendChild(modal);
+    const loginDiv=document.getElementById('loginForm'), regDiv=document.getElementById('regForm');
+    document.getElementById('toReg').onclick=e=>{e.preventDefault(); loginDiv.style.display='none'; regDiv.style.display='block';};
+    document.getElementById('toLogin').onclick=e=>{e.preventDefault(); loginDiv.style.display='block'; regDiv.style.display='none';};
+    document.getElementById('doLoginBtn').onclick = async () => { const login=document.getElementById('loginName').value.trim(), pass=document.getElementById('loginPass').value.trim(); if(login==='admin' && pass==='2505'){ await initAdmin(); const res=await loginUser('admin','2505'); if(res==="OK"){ currentUser='admin'; isAdmin=true; modal.remove(); renderApp(); } } else { const res=await loginUser(login,pass); if(res==="OK"){ currentUser=login; isAdmin=false; modal.remove(); renderApp(); } else document.getElementById('loginError').innerText=res; } };
+    document.getElementById('doRegBtn').onclick = async () => { const login=document.getElementById('regName').value.trim(), pass=document.getElementById('regPass').value.trim(); const res=await registerUser(login,pass); if(res==="OK"){ alert("Регистрация OK! Войдите."); loginDiv.style.display='block'; regDiv.style.display='none'; } else document.getElementById('regError').innerText=res; };
+}
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+// Заставка 3 сек
+setTimeout(() => { const s=document.getElementById('splash'); if(s){ s.style.opacity='0'; setTimeout(()=>{ s.remove(); document.getElementById('app').style.display='block'; initAdmin().then(()=>showLoginModal()); },800); } }, 3000);
+</script>
+</body>
+</html>
