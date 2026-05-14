@@ -2,82 +2,79 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Anti Max — с NavalnyStar и ANTI CLOUD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Anti Max — с магазином и премиумом</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-        body { height: 100vh; display: flex; justify-content: center; align-items: center; transition: background 0.2s; }
+        body { height: 100vh; display: flex; justify-content: center; align-items: center; transition: background 0.2s; color: white; font-weight: 500; }
         body.light { background: #e6e8ec; }
         body.dark { background: #0a0a0a; }
-        .app { width: 100%; max-width: 1400px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .app { width: 100%; max-width: 1400px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         body.light .app { background: #ffffff; }
         body.dark .app { background: #17212b; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid; transition: 0.2s; }
+        .splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a2e, #16213e); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; color: white; transition: opacity 1s ease; }
+        .splash h1 { font-size: 64px; background: linear-gradient(45deg, #ff416c, #ff4b2b); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 16px; }
+        .splash p { font-size: 20px; opacity: 0.8; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid; background: var(--bg-surface); }
         body.light .header { border-color: #ddd; background: #fff; }
         body.dark .header { border-color: #242f3d; background: #17212b; }
+        .menu-btn { background: transparent; border: none; font-size: 26px; cursor: pointer; padding: 6px; border-radius: 50%; width: 44px; color: white; }
         .logo { font-size: 22px; font-weight: bold; background: linear-gradient(45deg, #ff416c, #ff4b2b); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .user-info { display: flex; gap: 12px; align-items: center; }
-        .premium-badge { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a2e; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: bold; margin-left: 8px; }
         .star-balance { background: #2b2f38; border-radius: 20px; padding: 4px 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        .tg-btn { background: transparent; border: none; padding: 6px 12px; border-radius: 18px; cursor: pointer; transition: 0.1s; }
-        body.light .tg-btn { color: #0088cc; }
-        body.dark .tg-btn { color: #6ab3f3; }
-        .tabs { display: flex; padding: 0 16px; gap: 8px; border-bottom: 1px solid; overflow-x: auto; }
-        body.light .tabs { border-color: #ddd; background: #fff; }
-        body.dark .tabs { border-color: #242f3d; background: #17212b; }
-        .tab { padding: 12px 16px; cursor: pointer; font-weight: 500; white-space: nowrap; }
-        body.light .tab { color: #555; }
-        body.dark .tab { color: #8392a1; }
-        .tab.active { color: #6ab3f3; border-bottom: 2px solid #6ab3f3; }
+        .tg-btn { background: transparent; border: none; padding: 6px 12px; border-radius: 18px; cursor: pointer; transition: 0.1s; color: #6ab3f3; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s; }
+        .drawer-overlay.open { visibility: visible; opacity: 1; }
+        .drawer { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: var(--bg-surface); z-index: 1001; transition: left 0.25s ease; display: flex; flex-direction: column; box-shadow: 2px 0 12px rgba(0,0,0,0.3); }
+        body.light .drawer { background: #fff; }
+        body.dark .drawer { background: #17212b; }
+        .drawer.open { left: 0; }
+        .drawer-header { padding: 28px 20px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px; }
+        .drawer-avatar { width: 56px; height: 56px; border-radius: 50%; background: #2c3e50; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
+        .drawer-name { font-weight: 700; font-size: 18px; color: white; }
+        .drawer-username { font-size: 13px; opacity: 0.8; color: white; }
+        .drawer-menu { flex: 1; overflow-y: auto; padding: 12px 0; }
+        .drawer-item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; cursor: pointer; transition: background 0.1s; color: white; }
+        .drawer-item:hover { background: var(--bg-elevated); }
+        .drawer-footer { border-top: 1px solid var(--border-color); padding: 16px 20px; }
+        .tabs { display: flex; padding: 0 16px; gap: 8px; border-bottom: 1px solid; overflow-x: auto; background: var(--bg-surface); }
+        .tab { padding: 12px 16px; cursor: pointer; font-weight: 500; white-space: nowrap; border-bottom: 2px solid transparent; transition: 0.1s; color: #8392a1; }
+        .tab.active { color: #6ab3f3; border-bottom-color: #6ab3f3; }
         .main-panel { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 300px; border-right: 1px solid; overflow-y: auto; }
         body.light .sidebar { background: #f8f9fa; border-color: #ddd; }
         body.dark .sidebar { background: #17212b; border-color: #242f3d; }
-        .sidebar-header { padding: 14px 16px; font-weight: 600; }
-        .contact-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; border-radius: 12px; margin: 2px 8px; }
-        body.light .contact-item:hover { background: #e9ecef; }
-        body.dark .contact-item:hover { background: #242f3d; }
+        .contact-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; border-radius: 12px; margin: 2px 8px; color: white; }
+        .contact-item:hover { background: var(--bg-elevated); }
         .contact-item.active { background: #2b5278; }
-        .contact-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #2c3e50; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; position: relative; }
-        .contact-name { flex: 1; font-weight: 500; }
-        .premium-icon { font-size: 14px; margin-left: 4px; }
-        .add-contact { padding: 12px; display: flex; gap: 8px; border-top: 1px solid; }
-        .add-contact input { flex: 1; padding: 8px 12px; border-radius: 20px; border: none; outline: none; }
-        body.light .add-contact input { background: #fff; border: 1px solid #ccc; }
-        body.dark .add-contact input { background: #242f3d; color: #fff; }
-        .add-contact button { background: #6ab3f3; border: none; padding: 0 16px; border-radius: 20px; cursor: pointer; color: #17212b; font-weight: bold; }
-        .chat-area { flex: 1; display: flex; flex-direction: column; }
-        .chat-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid; }
-        body.light .chat-header { background: #fff; border-color: #ddd; }
-        body.dark .chat-header { background: #17212b; border-color: #242f3d; }
+        .contact-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #2c3e50; display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; }
+        .input-area { padding: 12px 16px; display: flex; gap: 12px; border-top: 1px solid; background: var(--bg-surface); }
+        .input-area input { flex: 1; padding: 10px 14px; border-radius: 24px; border: none; outline: none; background: #242f3d; color: white; font-weight: 500; }
+        .input-area button { background: #6ab3f3; border: none; padding: 0 20px; border-radius: 24px; cursor: pointer; font-weight: bold; color: #17212b; }
+        .emoji-btn { background: #242f3d; border: none; padding: 0 15px; border-radius: 24px; cursor: pointer; font-size: 20px; color: white; }
         .messages-container { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
         .message { max-width: 70%; padding: 8px 12px; border-radius: 18px; animation: fadeInUp 0.2s; }
-        .message-mine { align-self: flex-end; background: #2b5278; color: white; border-bottom-right-radius: 4px; }
-        .message-other { align-self: flex-start; background: #17212b; color: #e0e0e0; border-bottom-left-radius: 4px; }
-        .message-sender { font-size: 11px; opacity: 0.7; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-        .message-text { font-size: 14px; }
-        .message-time { font-size: 10px; text-align: right; margin-top: 4px; opacity: 0.6; }
-        .input-area { padding: 12px 16px; display: flex; gap: 12px; align-items: center; border-top: 1px solid; }
-        body.light .input-area { border-color: #ddd; background: #fff; }
-        body.dark .input-area { border-color: #242f3d; background: #17212b; }
-        .input-area input { flex: 1; padding: 10px 14px; border-radius: 24px; border: none; outline: none; }
-        body.light .input-area input { background: #f0f0f0; color: #000; }
-        body.dark .input-area input { background: #242f3d; color: #fff; }
-        .input-area button { background: #6ab3f3; border: none; padding: 0 20px; border-radius: 24px; cursor: pointer; font-weight: bold; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(4px); }
-        .modal-content { background: #17212b; border-radius: 28px; padding: 24px; width: 360px; text-align: center; color: white; max-height: 80%; overflow-y: auto; }
-        .setting-item { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .gift-item, .premium-item { background: #242f3d; border-radius: 16px; padding: 12px; margin: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .gift-item:hover, .premium-item:hover { background: #2b5278; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .message-mine { align-self: flex-end; background: #2b5278; }
+        .message-other { align-self: flex-start; background: #17212b; }
+        .message-sender { font-size: 11px; opacity: 0.8; margin-bottom: 4px; color: white; }
+        .message-text { font-size: 14px; word-break: break-word; font-weight: 500; color: white; }
+        .message-time { font-size: 10px; text-align: right; margin-top: 4px; opacity: 0.7; color: white; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; z-index:2000; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--bg-surface); border-radius: 28px; padding: 24px; max-width: 400px; width: 90%; text-align: center; color: white; }
+        .call-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: #0a0f1e; z-index: 5000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(10px); }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        body.light .drawer-name, body.light .drawer-username, body.light .drawer-item, body.light .star-balance, body.light .message-text, body.light .message-sender, body.light .message-time { color: #1a1a2e; }
+        body.light .message-mine .message-text { color: white; }
+        .premium-badge { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a2e; border-radius: 20px; padding: 2px 8px; font-size: 10px; margin-left: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
-<div id="splash" class="splash" style="position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg,#1a1a2e,#16213e); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:10000; color:white; transition:opacity 1s;">
-    <h1 style="font-size:64px; background:linear-gradient(45deg,#ff416c,#ff4b2b); -webkit-background-clip:text; background-clip:text; color:transparent;">Anti Max</h1>
-    <p style="font-size:20px;">лучшее решение</p>
+<div id="splash" class="splash">
+    <h1>Anti Max</h1>
+    <p>лучшее решение</p>
 </div>
 <div id="app" style="display: none;"></div>
 
@@ -101,29 +98,37 @@ let currentTab = "global";
 let currentContact = null;
 let globalUnsub = null, privateUnsub = null;
 
-// ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
-async function initUserData(login) {
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+async function getUserData(login) {
     const snap = await db.ref('users/' + login).once('value');
-    if (!snap.exists()) return;
-    let data = snap.val();
-    if (data.stars === undefined) await db.ref('users/' + login + '/stars').set(0);
-    if (data.premium === undefined) await db.ref('users/' + login + '/premium').set(false);
-    if (data.premiumExpiry === undefined) await db.ref('users/' + login + '/premiumExpiry').set(0);
-    if (data.gifts === undefined) await db.ref('users/' + login + '/gifts').set([]);
+    return snap.val() || { avatar: "😀", avatarBase64: null, stars: 0, premium: false, premiumExpiry: 0, gifts: [] };
+}
+async function getContacts(login) {
+    const snap = await db.ref('users/' + login + '/contacts').once('value');
+    return snap.val() || [];
+}
+async function addContact(login, contactLogin) {
+    if (login === contactLogin) return "Нельзя себя";
+    if (!(await db.ref('users/' + contactLogin).once('value')).exists()) return "Не найден";
+    let contacts = await getContacts(login);
+    if (contacts.includes(contactLogin)) return "Уже есть";
+    contacts.push(contactLogin);
+    await db.ref('users/' + login + '/contacts').set(contacts);
+    return "OK";
+}
+async function updateUserAvatar(login, emoji, base64) {
+    await db.ref('users/' + login).update({ avatar: emoji, avatarBase64: base64 || null });
 }
 async function getUserStars(login) {
     const snap = await db.ref('users/' + login + '/stars').once('value');
     return snap.val() || 0;
 }
-async function addStars(login, amount) {
-    const current = await getUserStars(login);
-    await db.ref('users/' + login + '/stars').set(current + amount);
+async function setUserStars(login, amount) {
+    await db.ref('users/' + login + '/stars').set(amount);
 }
-async function deductStars(login, amount) {
-    const current = await getUserStars(login);
-    if (current >= amount) await db.ref('users/' + login + '/stars').set(current - amount);
-    else return false;
-    return true;
+async function addStars(login, amount) {
+    const cur = await getUserStars(login);
+    await db.ref('users/' + login + '/stars').set(cur + amount);
 }
 async function isPremium(login) {
     const snap = await db.ref('users/' + login + '/premium').once('value');
@@ -133,87 +138,52 @@ async function isPremium(login) {
     return false;
 }
 async function buyPremium(login, months) {
-    const cost = months * 100; // 100 звезд за месяц
-    if (await deductStars(login, cost)) {
-        const expiry = await db.ref('users/' + login + '/premiumExpiry').once('value');
-        let newExpiry = Math.max(expiry.val() || 0, Date.now()) + months * 30 * 24 * 60 * 60 * 1000;
-        await db.ref('users/' + login + '/premium').set(true);
-        await db.ref('users/' + login + '/premiumExpiry').set(newExpiry);
-        return true;
-    }
-    return false;
+    const cost = months * 100;
+    const stars = await getUserStars(login);
+    if (stars < cost) return false;
+    await setUserStars(login, stars - cost);
+    const expiry = await db.ref('users/' + login + '/premiumExpiry').once('value');
+    let newExpiry = Math.max(expiry.val() || 0, Date.now()) + months * 30 * 24 * 60 * 60 * 1000;
+    await db.ref('users/' + login + '/premium').set(true);
+    await db.ref('users/' + login + '/premiumExpiry').set(newExpiry);
+    return true;
 }
 async function buyGift(login, giftId, price) {
-    if (await deductStars(login, price)) {
-        const gifts = (await db.ref('users/' + login + '/gifts').once('value')).val() || [];
-        gifts.push({ id: giftId, timestamp: Date.now() });
-        await db.ref('users/' + login + '/gifts').set(gifts);
-        return true;
-    }
-    return false;
+    const stars = await getUserStars(login);
+    if (stars < price) return false;
+    await setUserStars(login, stars - price);
+    const gifts = (await db.ref('users/' + login + '/gifts').once('value')).val() || [];
+    gifts.push({ id: giftId, timestamp: Date.now() });
+    await db.ref('users/' + login + '/gifts').set(gifts);
+    return true;
 }
-// Фейковая реклама (+5 звезд)
 async function watchAd() {
     await addStars(currentUser, 5);
     alert("+5 NavalnyStar! Спасибо за просмотр рекламы.");
 }
-
-// ========== ОСТАЛЬНЫЕ ФУНКЦИИ ПОЛЬЗОВАТЕЛЕЙ (сокращённо) ==========
 async function registerUser(login, password) {
-    if (await db.ref('users/' + login).once('value').then(s => s.exists())) return "Логин занят";
+    if (await db.ref('users/' + login).once('value').then(s=>s.exists())) return "Логин занят";
     await db.ref('users/' + login).set({ password, role: "user", banned: false, avatar: "😀", avatarBase64: null, stars: 0, premium: false, premiumExpiry: 0, gifts: [] });
     return "OK";
 }
 async function loginUser(login, password) {
     const snap = await db.ref('users/' + login).once('value');
     if (!snap.exists()) return "Пользователь не найден";
-    const u = snap.val();
-    if (u.password !== password) return "Неверный пароль";
-    if (u.banned) return "Аккаунт заблокирован";
-    await initUserData(login);
+    if (snap.val().password !== password) return "Неверный пароль";
+    if (snap.val().banned) return "Аккаунт заблокирован";
     return "OK";
 }
-async function getUserData(login) {
-    const snap = await db.ref('users/' + login).once('value');
-    return snap.val() || { avatar: "😀", avatarBase64: null, premium: false };
-}
-async function getContacts(login) {
-    const snap = await db.ref('users/' + login + '/contacts').once('value');
-    return snap.val() || [];
-}
-async function addContact(login, contactLogin) {
-    if (login === contactLogin) return "Нельзя себя";
-    if (!(await db.ref('users/' + contactLogin).once('value')).exists()) return "Пользователь не найден";
-    let contacts = await getContacts(login);
-    if (contacts.includes(contactLogin)) return "Уже в контактах";
-    contacts.push(contactLogin);
-    await db.ref('users/' + login + '/contacts').set(contacts);
-    return "OK";
-}
-async function updateUserAvatar(login, emoji, base64) {
-    await db.ref('users/' + login).update({ avatar: emoji, avatarBase64: base64 || null });
-}
-async function setUserBan(login, banned) { await db.ref('users/' + login + '/banned').set(banned); }
 async function getAllUsers() {
     const snap = await db.ref('users').once('value');
     const u = snap.val() || {};
     return Object.keys(u).map(k => ({ login: k, ...u[k] }));
 }
-async function deleteGlobalMessage(key) { await db.ref('globalMessages/' + key).remove(); }
-async function getAllGlobalMessagesWithKeys() {
-    const snap = await db.ref('globalMessages').once('value');
-    const val = snap.val();
-    return val ? Object.entries(val).map(([k, m]) => ({ key: k, ...m })) : [];
-}
+async function setUserBan(login, banned) { await db.ref('users/' + login + '/banned').set(banned); }
 async function sendGlobalMessage(text) {
-    if (!currentUser) return;
-    if ((await db.ref('users/' + currentUser + '/banned').once('value')).val()) { alert("Вы заблокированы"); return; }
     if (!text.trim()) return;
     await db.ref('globalMessages').push({ from: currentUser, text: text.trim(), timestamp: Date.now() });
 }
 async function sendPrivateMessage(to, text) {
-    if (!currentUser) return;
-    if ((await db.ref('users/' + currentUser + '/banned').once('value')).val()) { alert("Вы заблокированы"); return; }
     if (!text.trim()) return;
     const chatId = [currentUser, to].sort().join('_');
     await db.ref('privateMessages/' + chatId).push({ from: currentUser, to, text: text.trim(), timestamp: Date.now() });
@@ -223,114 +193,86 @@ function listenPrivateMessages(otherUser, cb) {
     const chatId = [currentUser, otherUser].sort().join('_');
     db.ref('privateMessages/' + chatId).on('value', snap => cb(snap.val() ? Object.values(snap.val()) : []));
 }
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+async function aiResponse(message) {
+    const lower = message.toLowerCase();
+    if (lower.includes('привет')) return 'Привет! Я ИИ-помощник Anti Max. Чем могу помочь?';
+    if (lower.includes('как дела')) return 'У меня всё отлично, а у тебя?';
+    if (lower.includes('погода')) return 'Я пока не умею узнавать погоду, но скоро научусь!';
+    if (lower.includes('спасибо')) return 'Пожалуйста! Рад помочь.';
+    return 'Интересно... Расскажи подробнее.';
+}
+function showCallScreen(contactName) {
+    const callDiv = document.createElement('div'); callDiv.className = 'call-screen'; callDiv.id = 'callScreen';
+    callDiv.innerHTML = `<div style="font-size:80px;"><i class="fas fa-phone-alt"></i></div><h2>Звонок пользователю ${escapeHtml(contactName)}</h2><div style="margin:30px 0;">Идёт вызов...</div><button id="endCallBtn" style="background:#e53935; color:white; border:none; padding:12px 30px; border-radius:40px; font-size:18px;"><i class="fas fa-phone-slash"></i> Завершить</button>`;
+    document.body.appendChild(callDiv);
+    document.getElementById('endCallBtn').onclick = () => callDiv.remove();
+    setTimeout(() => { if (document.getElementById('callScreen')) callDiv.remove(); }, 30000);
+}
 
-// ========== НАСТРОЙКИ С РАСШИРЕННЫМИ ФУНКЦИЯМИ ==========
-async function showSettingsModal() {
+// ========== МАГАЗИН (TRADE NAVALNYSTAR) ==========
+async function showShopModal() {
     const stars = await getUserStars(currentUser);
-    const premiumActive = await isPremium(currentUser);
     const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
     modal.innerHTML = `
         <div class="modal-content">
-            <h3>⚙️ Настройки</h3>
-            <div class="setting-item"><span>🌙 Тема:</span> <select id="themeSelect"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div>
-            <div class="setting-item"><span>🔔 Звуки:</span> <input type="checkbox" id="soundToggle" checked></div>
-            <div class="setting-item"><span>📱 Параллакс фон:</span> <input type="checkbox" id="parallaxToggle"></div>
-            <div class="setting-item"><span>💬 Анимированные сообщения:</span> <input type="checkbox" id="animMsgToggle" checked></div>
+            <h3><i class="fas fa-star"></i> Магазин NavalnyStar</h3>
+            <div style="margin:10px 0;">Ваш баланс: <strong>⭐ ${stars}</strong></div>
+            <button id="watchAdShop" class="tg-btn" style="background:#2b2f38; margin:5px;">📺 Смотреть рекламу (+5⭐)</button>
+            <hr style="margin:15px 0;">
+            <h4>☁️ ANTI CLOUD Premium</h4>
+            <div class="premium-item" data-months="1">1 месяц — 100 ⭐</div>
+            <div class="premium-item" data-months="3">3 месяца — 250 ⭐</div>
+            <div class="premium-item" data-months="6">6 месяцев — 450 ⭐</div>
             <hr>
-            <h3>⭐ NavalnyStar: ${stars}</h3>
-            <button id="watchAdBtn" class="tg-btn">📺 Смотреть рекламу (+5 звезд)</button>
-            <hr>
-            <h3>🎁 Подарки (купить за звезды)</h3>
-            <div id="giftsList"></div>
-            <hr>
-            <h3>☁️ ANTI CLOUD Premium</h3>
-            <div id="premiumInfo"></div>
-            <button id="closeSettings" class="tg-btn">Закрыть</button>
+            <h4>🎁 Подарки</h4>
+            <div class="gift-item" data-gift="flower" data-price="20">🌹 Цветок — 20 ⭐</div>
+            <div class="gift-item" data-gift="cake" data-price="50">🎂 Торт — 50 ⭐</div>
+            <div class="gift-item" data-gift="ring" data-price="150">💍 Кольцо — 150 ⭐</div>
+            <div class="gift-item" data-gift="rocket" data-price="300">🚀 Ракета — 300 ⭐</div>
+            <button id="closeShop" class="tg-btn" style="margin-top:20px;">Закрыть</button>
         </div>
     `;
     document.body.appendChild(modal);
-    // Тема
-    document.getElementById('themeSelect').value = document.body.classList.contains('dark') ? 'dark' : 'light';
-    document.getElementById('themeSelect').onchange = (e) => { document.body.className = e.target.value; localStorage.setItem('theme', e.target.value); };
-    document.getElementById('watchAdBtn').onclick = async () => { await watchAd(); modal.remove(); showSettingsModal(); };
-    // Подарки
-    const gifts = [
-        { id: 'flower', name: '🌹 Цветок', price: 20 },
-        { id: 'cake', name: '🎂 Торт', price: 50 },
-        { id: 'ring', name: '💍 Кольцо', price: 150 },
-        { id: 'rocket', name: '🚀 Ракета', price: 300 }
-    ];
-    const giftsDiv = document.getElementById('giftsList');
-    giftsDiv.innerHTML = gifts.map(g => `<div class="gift-item" data-id="${g.id}" data-price="${g.price}">${g.name} — ${g.price} ⭐ <button class="buy-gift">Купить</button></div>`).join('');
-    document.querySelectorAll('.buy-gift').forEach((btn, idx) => {
-        btn.onclick = async (e) => {
-            e.stopPropagation();
-            const gift = gifts[idx];
-            if (await buyGift(currentUser, gift.id, gift.price)) alert(`Вы купили ${gift.name}! Подарок сохранён.`);
+    document.getElementById('watchAdShop').onclick = async () => { await watchAd(); modal.remove(); showShopModal(); };
+    document.querySelectorAll('.premium-item').forEach(el => {
+        el.onclick = async () => {
+            const months = parseInt(el.dataset.months);
+            if (await buyPremium(currentUser, months)) alert(`Поздравляем! Вы купили ANTI CLOUD Premium на ${months} месяц(ев)!`);
             else alert("Недостаточно звезд!");
-            modal.remove(); showSettingsModal();
+            modal.remove();
+            if (currentTab === 'contacts') renderContactsTab();
+            updateStarBalance();
         };
     });
-    // Premium
-    const premiumDiv = document.getElementById('premiumInfo');
-    if (premiumActive) {
-        const expiry = await db.ref('users/' + currentUser + '/premiumExpiry').once('value');
-        premiumDiv.innerHTML = `<div class="premium-item">✨ У вас ANTI CLOUD Premium до ${new Date(expiry.val()).toLocaleDateString()}</div>`;
-    } else {
-        premiumDiv.innerHTML = `
-            <div class="premium-item" data-months="1">Купить на 1 месяц — 100 ⭐</div>
-            <div class="premium-item" data-months="3">Купить на 3 месяца — 250 ⭐ (скидка)</div>
-            <div class="premium-item" data-months="6">Купить на 6 месяцев — 450 ⭐</div>
-        `;
-        document.querySelectorAll('.premium-item').forEach(el => {
-            el.onclick = async () => {
-                const months = parseInt(el.dataset.months);
-                if (await buyPremium(currentUser, months)) alert(`Поздравляем! Вы купили ANTI CLOUD Premium на ${months} месяц(ев)!`);
-                else alert("Недостаточно звезд!");
-                modal.remove(); showSettingsModal();
-            };
-        });
-    }
-    document.getElementById('closeSettings').onclick = () => modal.remove();
-}
-
-// ========== ПРОФИЛЬ С ОТОБРАЖЕНИЕМ PREMIUM ==========
-async function showProfileModal() {
-    const data = await getUserData(currentUser);
-    const premium = await isPremium(currentUser);
-    const stars = await getUserStars(currentUser);
-    const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <h3>Профиль ${premium ? '<span style="background:linear-gradient(135deg,#FFD700,#FFA500); padding:2px 8px; border-radius:20px;">☁️ ANTI CLOUD</span>' : ''}</h3>
-            <div id="profileAvatar">${data.avatarBase64 ? `<img src="${data.avatarBase64}" style="width:100px;border-radius:50%;">` : `<div style="font-size:80px;">${data.avatar}</div>`}</div>
-            <div>⭐ Баланс: ${stars} NavalnyStar</div>
-            <label class="file-input-label" style="background:#6ab3f3; padding:8px 16px; border-radius:24px; cursor:pointer; display:inline-block; margin:8px;">📸 Загрузить фото<input type="file" id="avatarFile" accept="image/*" style="display:none;"></label>
-            <div>Выберите эмодзи:</div>
-            <div class="avatar-select" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin:16px 0;">
-                ${["😀","😎","🥷","🐱","🐶","🦊","🐼","🤖"].map(e => `<div style="font-size:40px; cursor:pointer; background:#242f3d; border-radius:50%; padding:8px;" data-emoji="${e}">${e}</div>`).join('')}
-            </div>
-            <button id="saveProfile" class="tg-btn">Сохранить</button>
-            <button id="closeProfile" class="tg-btn">Закрыть</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    let selectedEmoji = data.avatar, selectedBase64 = data.avatarBase64;
-    document.getElementById('avatarFile').onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) { const reader = new FileReader(); reader.onload = (ev) => { selectedBase64 = ev.target.result; document.getElementById('profileAvatar').innerHTML = `<img src="${selectedBase64}" style="width:100px;border-radius:50%;">`; }; reader.readAsDataURL(file); }
-    };
-    document.querySelectorAll('.avatar-select div').forEach(opt => {
-        opt.onclick = () => { selectedEmoji = opt.dataset.emoji; document.getElementById('profileAvatar').innerHTML = `<div style="font-size:80px;">${selectedEmoji}</div>`; selectedBase64 = null; };
+    document.querySelectorAll('.gift-item').forEach(el => {
+        el.onclick = async () => {
+            const giftId = el.dataset.gift;
+            const price = parseInt(el.dataset.price);
+            if (await buyGift(currentUser, giftId, price)) alert(`Вы купили ${el.innerText.split('—')[0].trim()}! Подарок сохранён.`);
+            else alert("Недостаточно звезд!");
+            modal.remove();
+            updateStarBalance();
+        };
     });
-    document.getElementById('saveProfile').onclick = async () => { await updateUserAvatar(currentUser, selectedEmoji, selectedBase64); alert("Аватар обновлён"); modal.remove(); if(currentTab === 'contacts') renderContactsTab(); };
-    document.getElementById('closeProfile').onclick = () => modal.remove();
+    document.getElementById('closeShop').onclick = () => modal.remove();
 }
 
-// ========== UI (общий чат, контакты, админка) ==========
+// ========== ОТРИСОВКА ОБЩЕГО ЧАТА С ПОЛЕМ ВВОДА ==========
 async function renderGlobalChat() {
     const panel = document.getElementById('mainPanel');
-    panel.innerHTML = `<div class="chat-area"><div class="chat-header">🌐 Общий чат</div><div class="messages-container" id="globalMessages"></div><div class="input-area"><input type="text" id="globalInput" placeholder="Сообщение..."><button id="globalSend">➤</button></div></div>`;
+    panel.innerHTML = `
+        <div class="chat-area" style="width:100%">
+            <div class="chat-header" style="padding:12px 20px;">🌐 Общий чат + ИИ</div>
+            <div class="messages-container" id="globalMessages"></div>
+            <div class="input-area">
+                <input type="text" id="globalInput" placeholder="Сообщение...">
+                <button class="emoji-btn" id="globalEmojiBtn">😊</button>
+                <button id="globalSend">➤</button>
+            </div>
+            <div id="globalEmojiPanel" style="display:none; position:absolute; bottom:80px; left:20px; background:#17212b; border-radius:20px; padding:12px; width:280px; flex-wrap:wrap; z-index:200;"></div>
+        </div>
+    `;
     if (globalUnsub) globalUnsub();
     globalUnsub = listenGlobalMessages(msgs => {
         const container = document.getElementById('globalMessages');
@@ -338,26 +280,51 @@ async function renderGlobalChat() {
         container.innerHTML = msgs.map(m => `<div class="message ${m.from === currentUser ? 'message-mine' : 'message-other'}"><div class="message-sender">${escapeHtml(m.from)}</div><div class="message-text">${escapeHtml(m.text)}</div><div class="message-time">${new Date(m.timestamp).toLocaleTimeString()}</div></div>`).join('');
         container.scrollTop = container.scrollHeight;
     });
-    document.getElementById('globalSend').onclick = () => { const inp = document.getElementById('globalInput'); sendGlobalMessage(inp.value); inp.value = ''; };
+    const emojiBtn = document.getElementById('globalEmojiBtn');
+    const emojiPanel = document.getElementById('globalEmojiPanel');
+    const emojis = ["😀","😎","🔥","❤️","👍","😂","😭","😍","🎉","✨","💪","🐱","🍕"];
+    emojiPanel.innerHTML = emojis.map(e => `<span style="font-size:28px;cursor:pointer;margin:4px;">${e}</span>`).join('');
+    emojiBtn.onclick = (e) => { e.stopPropagation(); emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'flex' : 'none'; };
+    emojiPanel.querySelectorAll('span').forEach(span => { span.onclick = () => { document.getElementById('globalInput').value += span.innerText; emojiPanel.style.display = 'none'; }; });
+    document.addEventListener('click', () => emojiPanel.style.display = 'none');
+    const sendMsg = async () => {
+        const inp = document.getElementById('globalInput');
+        const text = inp.value.trim();
+        if (!text) return;
+        await sendGlobalMessage(text);
+        inp.value = '';
+        if (text.length > 2) {
+            const reply = await aiResponse(text);
+            setTimeout(async () => { await db.ref('globalMessages').push({ from: "🤖 AntiMax AI", text: reply, timestamp: Date.now() }); }, 1000);
+        }
+    };
+    document.getElementById('globalSend').onclick = sendMsg;
+    document.getElementById('globalInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendMsg(); });
 }
 
+// ========== КОНТАКТЫ И ЛИЧКА (с кнопкой звонка) ==========
 async function renderContactsTab() {
     const contacts = await getContacts(currentUser);
     const premium = await isPremium(currentUser);
     const panel = document.getElementById('mainPanel');
     panel.innerHTML = `
         <div class="sidebar">
-            <div class="sidebar-header">Контакты</div>
+            <div class="sidebar-header" style="padding:16px;">Контакты</div>
             <div id="contactsList"></div>
-            <div class="add-contact"><input id="newContact" placeholder="Логин"><button id="addContactBtn">➕</button></div>
+            <div class="add-contact" style="padding:12px; display:flex; gap:8px;"><input id="newContact" placeholder="Логин"><button id="addContactBtn">➕</button></div>
         </div>
         <div class="chat-area">
-            <div class="chat-header">
-                <div class="chat-header-avatar" id="chatAvatar">👤</div>
-                <div><div id="chatName">Выберите чат</div><div id="chatStatus"></div></div>
+            <div class="chat-header" style="padding:12px 20px; display:flex; justify-content:space-between;">
+                <span id="chatHeaderText">Выберите чат</span>
+                <button id="callContactBtn" style="background:#2b5278; border:none; border-radius:20px; padding:6px 12px; color:white; cursor:pointer; display:none;"><i class="fas fa-phone"></i> Позвонить</button>
             </div>
             <div class="messages-container" id="privateMessages"></div>
-            <div class="input-area"><input type="text" id="privateInput" placeholder="Сообщение..." disabled><button id="privateSend" disabled>➤</button></div>
+            <div class="input-area">
+                <input type="text" id="privateInput" placeholder="Сообщение..." disabled>
+                <button class="emoji-btn" id="privateEmojiBtn">😊</button>
+                <button id="privateSend" disabled>➤</button>
+            </div>
+            <div id="privateEmojiPanel" style="display:none; position:absolute; bottom:80px; left:20px; background:#17212b; border-radius:20px; padding:12px; width:280px; flex-wrap:wrap; z-index:200;"></div>
         </div>
     `;
     const contactsDiv = document.getElementById('contactsList');
@@ -367,22 +334,31 @@ async function renderContactsTab() {
         const userPremium = await isPremium(c);
         const avatarHtml = ud.avatarBase64 ? `<img src="${ud.avatarBase64}" style="width:48px;height:48px;border-radius:50%;">` : `<div style="width:48px;height:48px;border-radius:50%;background:#2c3e50;display:flex;align-items:center;justify-content:center;font-size:24px;">${ud.avatar}</div>`;
         const div = document.createElement('div'); div.className = `contact-item ${currentContact === c ? 'active' : ''}`;
-        div.innerHTML = `<div class="contact-avatar">${avatarHtml}</div><div class="contact-name">${escapeHtml(c)}${userPremium ? ' <span class="premium-icon">☁️</span>' : ''}</div>`;
+        div.innerHTML = `<div class="contact-avatar">${avatarHtml}</div><div class="contact-name">${escapeHtml(c)}${userPremium ? ' <span class="premium-badge">☁️</span>' : ''}</div>`;
         div.onclick = () => { currentContact = c; renderContactsTab(); };
         contactsDiv.appendChild(div);
     }
     document.getElementById('addContactBtn').onclick = async () => {
         const inp = document.getElementById('newContact');
         const res = await addContact(currentUser, inp.value.trim());
-        if (res !== "OK") alert(res); else { inp.value = ''; renderContactsTab(); }
+        alert(res === "OK" ? "Добавлен" : res);
+        if (res === "OK") renderContactsTab();
     };
+    // Эмодзи для личного чата
+    const emojiBtn = document.getElementById('privateEmojiBtn');
+    const emojiPanel = document.getElementById('privateEmojiPanel');
+    const emojis = ["😀","😎","🔥","❤️","👍","😂","😭","😍","🎉","✨","💪","🐱","🍕"];
+    emojiPanel.innerHTML = emojis.map(e => `<span style="font-size:28px;cursor:pointer;margin:4px;">${e}</span>`).join('');
+    emojiBtn.onclick = (e) => { e.stopPropagation(); emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'flex' : 'none'; };
+    emojiPanel.querySelectorAll('span').forEach(span => { span.onclick = () => { document.getElementById('privateInput').value += span.innerText; emojiPanel.style.display = 'none'; }; });
+    document.addEventListener('click', () => emojiPanel.style.display = 'none');
     if (currentContact) {
         document.getElementById('privateInput').disabled = false;
         document.getElementById('privateSend').disabled = false;
-        const ud = await getUserData(currentContact);
-        document.getElementById('chatName').innerHTML = `${escapeHtml(currentContact)} ${await isPremium(currentContact) ? '☁️' : ''}`;
-        document.getElementById('chatStatus').innerText = "В сети";
-        document.getElementById('chatAvatar').innerHTML = ud.avatarBase64 ? `<img src="${ud.avatarBase64}" style="width:42px;border-radius:50%;">` : `<div style="font-size:28px;">${ud.avatar}</div>`;
+        document.getElementById('chatHeaderText').innerHTML = `Чат с ${escapeHtml(currentContact)} ${await isPremium(currentContact) ? '<span class="premium-badge">☁️</span>' : ''}`;
+        const callBtn = document.getElementById('callContactBtn');
+        callBtn.style.display = 'inline-flex';
+        callBtn.onclick = () => showCallScreen(currentContact);
         if (privateUnsub) privateUnsub();
         privateUnsub = listenPrivateMessages(currentContact, msgs => {
             const container = document.getElementById('privateMessages');
@@ -390,75 +366,140 @@ async function renderContactsTab() {
             container.innerHTML = msgs.map(msg => `<div class="message ${msg.from === currentUser ? 'message-mine' : 'message-other'}"><div class="message-sender">${escapeHtml(msg.from)}</div><div class="message-text">${escapeHtml(msg.text)}</div><div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div></div>`).join('');
             container.scrollTop = container.scrollHeight;
         });
-        const send = () => { const inp = document.getElementById('privateInput'); if (inp.value.trim()) { sendPrivateMessage(currentContact, inp.value); inp.value = ''; } };
+        const send = () => {
+            const inp = document.getElementById('privateInput');
+            if (inp.value.trim()) { sendPrivateMessage(currentContact, inp.value); inp.value = ''; }
+        };
         document.getElementById('privateSend').onclick = send;
         document.getElementById('privateInput').addEventListener('keypress', e => { if (e.key === 'Enter') send(); });
+    } else {
+        document.getElementById('callContactBtn').style.display = 'none';
     }
 }
 
+// ========== АДМИН-ПАНЕЛЬ (выдача звёзд, блокировка) ==========
 async function renderAdminPanel() {
     const panel = document.getElementById('mainPanel');
-    panel.innerHTML = `<div class="chat-area"><div class="chat-header">👑 Админ-панель</div><div class="messages-container" id="adminContent"></div></div>`;
+    panel.innerHTML = `<div class="chat-area" style="width:100%"><div class="chat-header" style="padding:12px 20px;">👑 Админ-панель</div><div class="messages-container" id="adminContent"></div></div>`;
     const container = document.getElementById('adminContent');
     const users = await getAllUsers();
     container.innerHTML = '<h3>Управление пользователями</h3>';
     for (let u of users) {
-        const row = document.createElement('div'); row.className = 'user-row'; row.style.display = 'flex'; row.style.justifyContent = 'space-between'; row.style.padding = '8px'; row.style.background = '#242f3d'; row.style.margin = '4px'; row.style.borderRadius = '12px';
-        row.innerHTML = `<div><strong>${escapeHtml(u.login)}</strong> ${u.banned ? '🔴' : '🟢'} ⭐${u.stars || 0} ${u.premium ? '☁️' : ''}</div>
-                         <div><button class="ban-btn" data-login="${u.login}" data-ban="${!u.banned}">${u.banned ? 'Разблокировать' : 'Заблокировать'}</button></div>`;
+        const row = document.createElement('div'); row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:12px; background:#242f3d; margin:8px; border-radius:16px;';
+        row.innerHTML = `<div><strong>${escapeHtml(u.login)}</strong> ⭐ ${u.stars || 0} ${u.banned ? '🔴' : '🟢'}</div>
+            <div><input type="number" id="stars_${u.login}" placeholder="Кол-во" style="width:80px; padding:4px; border-radius:12px;"><button class="giveStarsBtn" data-login="${u.login}">Выдать⭐</button>
+            <button class="banBtn" data-login="${u.login}" data-ban="${!u.banned}">${u.banned ? 'Разблокировать' : 'Заблокировать'}</button></div>`;
         container.appendChild(row);
     }
-    document.querySelectorAll('.ban-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            await setUserBan(btn.dataset.login, btn.dataset.ban === 'true');
+    document.querySelectorAll('.giveStarsBtn').forEach(btn => {
+        btn.onclick = async () => {
+            const login = btn.dataset.login;
+            const input = document.getElementById(`stars_${login}`);
+            const amount = parseInt(input.value);
+            if (isNaN(amount)) { alert("Введите число"); return; }
+            await addStars(login, amount);
+            alert(`Выдано ${amount} звезд пользователю ${login}`);
             renderAdminPanel();
-        });
+        };
     });
-    const globalMsgs = await getAllGlobalMessagesWithKeys();
-    container.innerHTML += '<h3 style="margin-top:20px">Сообщения общего чата</h3>';
-    for (let msg of globalMsgs) {
-        const row = document.createElement('div'); row.className = 'user-row'; row.style.display = 'flex'; row.style.justifyContent = 'space-between'; row.style.padding = '8px'; row.style.background = '#242f3d'; row.style.margin = '4px';
-        row.innerHTML = `<div><strong>${escapeHtml(msg.from)}</strong>: ${escapeHtml(msg.text)}</div><button class="delete-msg-btn" data-key="${msg.key}">🗑</button>`;
-        container.appendChild(row);
-    }
-    document.querySelectorAll('.delete-msg-btn').forEach(btn => {
-        btn.addEventListener('click', async () => { if (confirm("Удалить?")) await deleteGlobalMessage(btn.dataset.key); renderAdminPanel(); });
+    document.querySelectorAll('.banBtn').forEach(btn => {
+        btn.onclick = async () => {
+            const login = btn.dataset.login;
+            const ban = btn.dataset.ban === 'true';
+            await setUserBan(login, ban);
+            renderAdminPanel();
+        };
     });
 }
 
+// ========== ОСНОВНОЙ ИНТЕРФЕЙС С МЕНЮ ==========
 function renderApp() {
     const appDiv = document.getElementById('app');
     appDiv.innerHTML = `
         <div class="app">
-            <div class="header">
-                <div class="logo">Anti Max</div>
-                <div class="user-info">
-                    <div class="star-balance" id="starBalance">⭐ 0</div>
-                    <button class="tg-btn" id="settingsBtn">⚙️</button>
-                    <button class="tg-btn" id="profileBtn">👤</button>
-                    <button class="tg-btn" id="logoutBtn">🚪</button>
-                </div>
-            </div>
+            <div class="header"><button class="menu-btn" id="menuToggleBtn"><i class="fas fa-bars"></i></button><div class="logo">Anti Max</div><div class="user-info"><div class="star-balance" id="starBalance">⭐ 0</div><button class="tg-btn" id="shopBtn">🛒 Магазин</button><button class="tg-btn" id="profileBtn">👤</button><button class="tg-btn" id="logoutBtn">🚪</button></div></div>
             <div class="tabs" id="tabsContainer"></div>
             <div class="main-panel" id="mainPanel"></div>
         </div>
+        <div class="drawer-overlay" id="drawerOverlay"></div><div class="drawer" id="drawer"><div class="drawer-header" id="drawerHeader"><div class="drawer-avatar" id="drawerAvatar">😀</div><div><div class="drawer-name" id="drawerName">Загрузка</div><div class="drawer-username" id="drawerUsername"></div></div></div><div class="drawer-menu" id="drawerMenu"></div><div class="drawer-footer"><div class="drawer-item" id="nightModeItem"><i class="fas fa-moon"></i> Ночной режим</div><div class="drawer-item" id="logoutDrawer"><i class="fas fa-sign-out-alt"></i> Выйти</div></div></div>
     `;
     const tabs = [{ id: "global", name: "🌐 Общий чат" }, { id: "contacts", name: "💬 Контакты" }];
     if (isAdmin) tabs.push({ id: "admin", name: "👑 Админ" });
     document.getElementById('tabsContainer').innerHTML = tabs.map(t => `<div class="tab ${currentTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.name}</div>`).join('');
     document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
-    document.getElementById('settingsBtn').onclick = () => showSettingsModal();
-    document.getElementById('profileBtn').onclick = () => showProfileModal();
+    document.getElementById('shopBtn').onclick = showShopModal;
+    document.getElementById('profileBtn').onclick = showProfileModal;
     document.getElementById('logoutBtn').onclick = logout;
+    const menuBtn = document.getElementById('menuToggleBtn'), overlay = document.getElementById('drawerOverlay'), drawer = document.getElementById('drawer');
+    function openDrawer() { drawer.classList.add('open'); overlay.classList.add('open'); }
+    function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('open'); }
+    menuBtn.onclick = openDrawer; overlay.onclick = closeDrawer;
+    updateDrawerContent();
+    document.getElementById('nightModeItem').onclick = () => { document.body.classList.toggle('dark'); document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); closeDrawer(); };
+    document.getElementById('logoutDrawer').onclick = () => { logout(); closeDrawer(); };
     updateStarBalance();
     if (currentTab === 'global') renderGlobalChat();
     else if (currentTab === 'contacts') renderContactsTab();
     else if (currentTab === 'admin' && isAdmin) renderAdminPanel();
 }
+
+async function updateDrawerContent() {
+    if (!currentUser) return;
+    const data = await getUserData(currentUser);
+    const avatarHtml = data.avatarBase64 ? `<img src="${data.avatarBase64}" style="width:56px;height:56px;border-radius:50%;">` : `<div style="font-size:40px;">${data.avatar}</div>`;
+    document.getElementById('drawerAvatar').innerHTML = avatarHtml;
+    document.getElementById('drawerName').innerText = currentUser;
+    document.getElementById('drawerUsername').innerText = `@${currentUser}`;
+    document.getElementById('drawerMenu').innerHTML = `
+        <div class="drawer-item" id="drawerNewGroup"><i class="fas fa-users"></i> Новая группа</div>
+        <div class="drawer-item" id="drawerSecretChat"><i class="fas fa-lock"></i> Секретный чат</div>
+        <div class="drawer-item" id="drawerNewChannel"><i class="fas fa-bullhorn"></i> Новый канал</div>
+        <div class="drawer-item" id="drawerContacts"><i class="fas fa-address-book"></i> Контакты</div>
+        <div class="drawer-item" id="drawerFavorites"><i class="fas fa-star"></i> Избранное</div>
+        <div class="drawer-item" id="drawerCalls"><i class="fas fa-phone"></i> Звонки</div>
+        <div class="drawer-item" id="drawerInvite"><i class="fas fa-user-plus"></i> Пригласить друзей</div>
+        <div class="drawer-item" id="drawerSettings"><i class="fas fa-cog"></i> Настройки</div>
+        <div class="drawer-item" id="drawerHelp"><i class="fas fa-question-circle"></i> Помощь</div>
+    `;
+    document.getElementById('drawerContacts').onclick = () => { switchTab('contacts'); closeDrawer(); };
+    document.getElementById('drawerInvite').onclick = () => { alert("Скопируйте URL страницы и отправьте другу!"); closeDrawer(); };
+    document.getElementById('drawerSettings').onclick = () => { showSettingsModal(); closeDrawer(); };
+    document.getElementById('drawerCalls').onclick = () => { alert("Выберите контакт → кнопка звонка"); closeDrawer(); };
+    const others = ["drawerNewGroup","drawerSecretChat","drawerNewChannel","drawerFavorites","drawerHelp"];
+    others.forEach(id => { document.getElementById(id).onclick = () => { alert("В разработке"); closeDrawer(); }; });
+}
+
+async function showSettingsModal() {
+    const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+    modal.innerHTML = `<div class="modal-content"><h3>Настройки</h3><label>Тема: <select id="themeSelect"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></label><button id="closeSettings">Закрыть</button></div>`;
+    document.body.appendChild(modal);
+    document.getElementById('themeSelect').value = document.body.classList.contains('dark') ? 'dark' : 'light';
+    document.getElementById('themeSelect').onchange = (e) => { document.body.className = e.target.value; localStorage.setItem('theme', e.target.value); };
+    document.getElementById('closeSettings').onclick = () => modal.remove();
+}
+
+async function showProfileModal() {
+    const data = await getUserData(currentUser);
+    const stars = await getUserStars(currentUser);
+    const premiumActive = await isPremium(currentUser);
+    const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+    modal.innerHTML = `<div class="modal-content"><h3>Профиль ${premiumActive ? '<span class="premium-badge">☁️ ANTI CLOUD</span>' : ''}</h3><div id="profileAvatar">${data.avatarBase64 ? `<img src="${data.avatarBase64}" style="width:80px;border-radius:50%;">` : `<div style="font-size:64px;">${data.avatar}</div>`}</div><div>⭐ ${stars} NavalnyStar</div><input type="file" id="avatarFile" accept="image/*"><div>Выберите эмодзи:</div><div style="display:flex; gap:12px; justify-content:center;">${["😀","😎","🥷","🐱","🐶","🦊","🐼","🤖"].map(e => `<span style="font-size:32px;cursor:pointer;" data-emoji="${e}">${e}</span>`).join('')}</div><button id="saveProfile">Сохранить</button><button id="closeProfile">Закрыть</button></div>`;
+    document.body.appendChild(modal);
+    let selectedEmoji = data.avatar, selectedBase64 = data.avatarBase64;
+    document.getElementById('avatarFile').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) { const reader = new FileReader(); reader.onload = (ev) => { selectedBase64 = ev.target.result; document.getElementById('profileAvatar').innerHTML = `<img src="${selectedBase64}" style="width:80px;border-radius:50%;">`; }; reader.readAsDataURL(file); }
+    };
+    document.querySelectorAll('[data-emoji]').forEach(span => { span.onclick = () => { selectedEmoji = span.dataset.emoji; document.getElementById('profileAvatar').innerHTML = `<div style="font-size:64px;">${selectedEmoji}</div>`; selectedBase64 = null; }; });
+    document.getElementById('saveProfile').onclick = async () => { await updateUserAvatar(currentUser, selectedEmoji, selectedBase64); alert("Аватар обновлён"); modal.remove(); updateDrawerContent(); if(currentTab === 'contacts') renderContactsTab(); };
+    document.getElementById('closeProfile').onclick = () => modal.remove();
+}
+
 async function updateStarBalance() {
-    const bal = await getUserStars(currentUser);
+    if (!currentUser) return;
+    const stars = await getUserStars(currentUser);
     const el = document.getElementById('starBalance');
-    if (el) el.innerHTML = `⭐ ${bal}`;
+    if (el) el.innerHTML = `⭐ ${stars}`;
 }
 async function switchTab(tab) {
     currentTab = tab;
@@ -472,27 +513,19 @@ async function logout() {
     currentUser = null; isAdmin = false;
     showLoginModal();
 }
-function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-
-// ========== ВХОД ==========
-async function initAdmin() {
-    const snap = await db.ref('users/admin').once('value');
-    if (!snap.exists()) await db.ref('users/admin').set({ password: "2505", role: "admin", banned: false, avatar: "👑", stars: 0, premium: false, premiumExpiry: 0 });
-}
 function showLoginModal() {
     const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
-    modal.innerHTML = `<div class="modal-content"><h2>Anti Max</h2><input type="text" id="loginName" placeholder="Логин"><input type="password" id="loginPass" placeholder="Пароль"><button id="doLogin">Войти</button><button id="toReg">Регистрация</button><div id="loginError" style="color:red"></div></div>`;
+    modal.innerHTML = `<div class="modal-content"><h2>Anti Max</h2><input type="text" id="loginName" placeholder="Логин"><input type="password" id="loginPass" placeholder="Пароль"><button id="doLogin">Войти</button><button id="toReg">Регистрация</button><div id="loginError"></div></div>`;
     document.body.appendChild(modal);
     document.getElementById('doLogin').onclick = async () => {
         const login = document.getElementById('loginName').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
         if (login === 'admin' && pass === '2505') {
-            await initAdmin();
             currentUser = 'admin'; isAdmin = true;
-            modal.remove(); document.getElementById('app').style.display = 'flex'; renderApp(); return;
+            modal.remove(); renderApp(); return;
         }
         const res = await loginUser(login, pass);
-        if (res === "OK") { currentUser = login; isAdmin = false; modal.remove(); document.getElementById('app').style.display = 'flex'; renderApp(); }
+        if (res === "OK") { currentUser = login; isAdmin = false; modal.remove(); renderApp(); }
         else document.getElementById('loginError').innerText = res;
     };
     document.getElementById('toReg').onclick = async () => {
@@ -503,17 +536,16 @@ function showLoginModal() {
     };
 }
 
-// Запуск с заставкой 5 сек
+// ЗАСТАВКА 5 СЕКУНД И ЗАПУСК
 setTimeout(() => {
     const splash = document.getElementById('splash');
     if (splash) splash.style.opacity = '0';
     setTimeout(() => {
-        if (splash) splash.remove();
+        splash.style.display = 'none';
         document.getElementById('app').style.display = 'flex';
-        initAdmin().then(() => showLoginModal());
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) document.body.className = savedTheme;
-        else document.body.className = 'dark';
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.body.className = savedTheme;
+        showLoginModal();
     }, 1000);
 }, 5000);
 </script>
