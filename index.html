@@ -96,29 +96,102 @@
         .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #2c3e50; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 48px; overflow: hidden; }
         .profile-button { background: #3b82f6; border: none; color: white; padding: 12px 20px; border-radius: 40px; font-weight: 600; margin: 8px 0; width: 100%; cursor: pointer; }
         @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        /* Адаптивные стили для мобильных устройств */
+
+        /* ========== НОВЫЕ АДАПТИВНЫЕ СТИЛИ ДЛЯ МОБИЛЬНЫХ ========== */
         @media (max-width: 768px) {
-            .sidebar { width: 280px; }
-            .message { max-width: 85%; }
-            .dialog-avatar { width: 44px; height: 44px; font-size: 20px; }
-            .contact-avatar, .dialog-avatar { width: 44px; height: 44px; }
-            .header { padding: 8px 16px; }
-            .menu-btn { width: 40px; font-size: 24px; }
-            .logo span { font-size: 20px; }
-            .logo img { width: 30px; height: 30px; }
-            .star-balance { padding: 4px 12px; font-size: 12px; }
-            .tg-btn { padding: 6px 10px; font-size: 14px; }
-            .input-area { padding: 8px 12px; gap: 8px; }
-            .input-area input { padding: 10px 14px; font-size: 14px; }
-            .input-area button, .action-btn { padding: 8px 14px; font-size: 16px; }
-            .shop-container { width: 320px; padding: 20px; }
-            .stars-package, .premium-item { padding: 10px 12px; font-size: 14px; }
+            body { overflow-x: hidden; }
+            .app { overflow-x: hidden; }
+            .main-panel { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                max-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid;
+                height: auto;
+                max-height: 35%;
+                flex-shrink: 0;
+            }
+            .chat-area {
+                width: 100%;
+                min-height: 65%;
+            }
+            .drawer {
+                width: 260px;
+                left: -260px;
+            }
+            .message {
+                max-width: 85%;
+                font-size: 13px;
+            }
+            .input-area input {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            .input-area button, .action-btn {
+                padding: 8px 12px;
+                font-size: 16px;
+            }
+            .header {
+                padding: 8px 12px;
+            }
+            .logo span {
+                font-size: 18px;
+            }
+            .logo img {
+                width: 28px;
+                height: 28px;
+            }
+            .star-balance {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+            .tg-btn {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            .menu-btn {
+                width: 36px;
+                font-size: 22px;
+            }
+            .dialog-item {
+                padding: 8px 12px;
+                margin: 2px 8px;
+            }
+            .dialog-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            .profile-card {
+                width: 90%;
+                padding: 16px;
+            }
+            .shop-container {
+                width: 90%;
+                padding: 16px;
+            }
+            .stars-package, .premium-item {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
         }
         @media (max-width: 480px) {
-            .sidebar { width: 260px; }
-            .drawer { width: 280px; left: -280px; }
-            .message { max-width: 90%; }
-            .profile-card { padding: 20px; }
+            .sidebar {
+                max-height: 30%;
+            }
+            .chat-area {
+                min-height: 70%;
+            }
+            .message {
+                max-width: 90%;
+            }
+            .drawer {
+                width: 240px;
+                left: -240px;
+            }
+            .drawer-header {
+                padding: 20px 16px;
+            }
         }
     </style>
 </head>
