@@ -2,13 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Anti Max — Магазин как в Telegram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Anti Max — Полная версия</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ========== ВСЕ СТИЛИ (полностью как в последней рабочей версии) ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         body { height: 100vh; width: 100vw; overflow: hidden; transition: background 0.2s; font-weight: 500; }
         body.dark { background: #0a0a0a; color: white; }
@@ -77,7 +76,6 @@
         .input-area button, .action-btn { background: #242f3d; border: none; padding: 12px 20px; border-radius: 30px; cursor: pointer; font-size: 18px; color: white; }
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
         .modal-content { background: var(--bg-surface); border-radius: 32px; padding: 28px; max-width: 450px; width: 90%; text-align: center; color: white; max-height: 80%; overflow-y: auto; }
-        /* Магазин в стиле Telegram Premium (как на скриншоте) */
         .shop-container { background: var(--bg-surface); border-radius: 32px; padding: 24px; width: 380px; max-width: 90%; color: white; }
         .shop-title { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 16px; }
         .shop-balance { background: #2b2f38; border-radius: 40px; padding: 12px; text-align: center; margin-bottom: 20px; font-size: 16px; }
@@ -98,6 +96,30 @@
         .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #2c3e50; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 48px; overflow: hidden; }
         .profile-button { background: #3b82f6; border: none; color: white; padding: 12px 20px; border-radius: 40px; font-weight: 600; margin: 8px 0; width: 100%; cursor: pointer; }
         @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        /* Адаптивные стили для мобильных устройств */
+        @media (max-width: 768px) {
+            .sidebar { width: 280px; }
+            .message { max-width: 85%; }
+            .dialog-avatar { width: 44px; height: 44px; font-size: 20px; }
+            .contact-avatar, .dialog-avatar { width: 44px; height: 44px; }
+            .header { padding: 8px 16px; }
+            .menu-btn { width: 40px; font-size: 24px; }
+            .logo span { font-size: 20px; }
+            .logo img { width: 30px; height: 30px; }
+            .star-balance { padding: 4px 12px; font-size: 12px; }
+            .tg-btn { padding: 6px 10px; font-size: 14px; }
+            .input-area { padding: 8px 12px; gap: 8px; }
+            .input-area input { padding: 10px 14px; font-size: 14px; }
+            .input-area button, .action-btn { padding: 8px 14px; font-size: 16px; }
+            .shop-container { width: 320px; padding: 20px; }
+            .stars-package, .premium-item { padding: 10px 12px; font-size: 14px; }
+        }
+        @media (max-width: 480px) {
+            .sidebar { width: 260px; }
+            .drawer { width: 280px; left: -280px; }
+            .message { max-width: 90%; }
+            .profile-card { padding: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -175,7 +197,7 @@ async function getUserStatus(login) {
 function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
 function playNotificationSound() { if (settings.sound) { try { new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==').play().catch(e=>{}); } catch(e) {} } }
 
-// ========== ЗВЁЗДЫ, PREMIUM, МАГАЗИН (КРАСИВЫЙ) ==========
+// ========== ЗВЁЗДЫ, PREMIUM, МАГАЗИН ==========
 async function getUserStars(login) { const snap = await db.ref('users/' + login + '/stars').once('value'); return snap.val() || 0; }
 async function addStars(login, amount) { const cur = await getUserStars(login); await db.ref('users/' + login + '/stars').set(cur + amount); }
 async function isPremium(login) {
@@ -198,7 +220,7 @@ async function buyPremium(login, months) {
 }
 async function watchAd() { await addStars(currentUser, 5); alert("+5 NavalnyStar!"); }
 
-// ========== КРАСИВЫЙ МАГАЗИН (как на скриншоте) ==========
+// ========== МАГАЗИН ==========
 async function showShopModal() {
     const stars = await getUserStars(currentUser);
     const modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
@@ -223,25 +245,21 @@ async function showShopModal() {
         </div>
     `;
     document.body.appendChild(modal);
-    // Реклама
     modal.querySelector('[data-stars="5"]').onclick = async () => { await watchAd(); modal.remove(); showShopModal(); };
-    // Premium
     modal.querySelectorAll('.premium-item').forEach(el => {
         el.onclick = async () => {
             const months = parseInt(el.dataset.months);
-            if (await buyPremium(currentUser, months)) alert("Premium куплен! Обновите страницу."); else alert("Недостаточно звёзд");
+            if (await buyPremium(currentUser, months)) alert("Premium куплен!"); else alert("Недостаточно звёзд");
             modal.remove();
         };
     });
-    // Покупка звёзд (демо)
     modal.querySelectorAll('[data-buy-stars]').forEach(el => {
-        el.onclick = () => alert("Демо-режим. Для реальной оплаты подключите EasyDonate или другую платёжную систему.");
+        el.onclick = () => alert("Демо-режим. Для реальной оплаты подключите EasyDonate.");
     });
-    // Кнопка закрытия
     document.getElementById('closeShopBtn').onclick = () => modal.remove();
 }
 
-// ========== ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ (сообщения, файлы, админка, профиль) — без изменений ==========
+// ========== СООБЩЕНИЯ, ФАЙЛЫ, АДМИНКА, ПРОФИЛЬ (без изменений) ==========
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 async function sendMessage(chatId, chatType, text, fileData = null, fileType = null) {
     if (!text && !fileData) return;
@@ -371,8 +389,6 @@ async function openTestBotChat() {
     document.getElementById('attachBtn').onclick = () => alert("Тест-бот не принимает файлы");
     document.getElementById('voiceBtn').onclick = () => alert("Тест-бот не принимает голосовые");
 }
-
-// ========== ОСНОВНОЙ ИНТЕРФЕЙС (диалоги, профиль, чаты) ==========
 async function showProfilePage() {
     const data = await getUserData(currentUser);
     const stars = await getUserStars(currentUser);
@@ -385,10 +401,10 @@ async function showProfilePage() {
                 <div class="profile-avatar" id="profileAvatar">${data.avatarBase64 ? `<img src="${data.avatarBase64}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:64px;">${data.avatar}</span>`}</div>
                 <div class="profile-name" id="profileName">${escapeHtml(data.displayName || currentUser)}</div>
                 <div class="profile-username">@${currentUser}</div>
-                <div class="profile-stats" style="display: flex; justify-content: space-around; margin: 20px 0;">
-                    <div><div class="profile-stat-value">${stars}</div><div>⭐</div></div>
-                    <div><div class="profile-stat-value">${contactsCount}</div><div>Контакты</div></div>
-                    <div><div class="profile-stat-value">${premium ? '☁️' : '—'}</div><div>Premium</div></div>
+                <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+                    <div><div style="font-size: 20px; font-weight: bold;">${stars}</div><div>⭐</div></div>
+                    <div><div style="font-size: 20px; font-weight: bold;">${contactsCount}</div><div>Контакты</div></div>
+                    <div><div style="font-size: 20px; font-weight: bold;">${premium ? '☁️' : '—'}</div><div>Premium</div></div>
                 </div>
                 <button id="profileChangeName" class="profile-button"><i class="fas fa-user-edit"></i> Изменить имя</button>
                 <button id="profileChangeAvatar" class="profile-button" style="background: #475569;"><i class="fas fa-camera"></i> Изменить аватар</button>
@@ -419,7 +435,6 @@ async function showProfilePage() {
     };
     document.getElementById('profileClose').onclick = () => renderDialogsList();
 }
-
 async function renderDialogsList() {
     const contacts = await getContacts(currentUser);
     const panel = document.getElementById('mainPanel');
@@ -468,7 +483,6 @@ async function renderDialogsList() {
     window.openGlobalChat = openGlobalChat;
     window.openPrivateChat = openPrivateChat;
 }
-
 let globalChatUnsub = null;
 async function openGlobalChat() {
     if (globalChatUnsub) globalChatUnsub();
@@ -502,7 +516,6 @@ async function openGlobalChat() {
     document.getElementById('videoBtn').onclick = () => uploadFile((d,t) => sendGlobalMessageWithFile(d,t));
     if (await isPremium(currentUser)) document.getElementById('premiumEmojiBtn').onclick = () => alert("Эксклюзивные эмодзи: 💎👑⭐🚀🌟💥✨🎯🔥💸");
 }
-
 let privateChatUnsub = null;
 async function openPrivateChat(contact) {
     if (privateChatUnsub) privateChatUnsub();
@@ -528,8 +541,6 @@ async function openPrivateChat(contact) {
     document.getElementById('videoBtn').onclick = () => uploadFile((d,t) => sendMessage(currentDialog, 'user', "", d, t));
     if (await isPremium(currentUser)) document.getElementById('premiumEmojiBtn').onclick = () => alert("Эксклюзивные эмодзи: 💎👑⭐🚀🌟💥✨🎯🔥💸");
 }
-
-// ========== ГЛАВНЫЙ РЕНДЕР ==========
 function renderApp() {
     const appDiv = document.getElementById('app');
     appDiv.innerHTML = `
