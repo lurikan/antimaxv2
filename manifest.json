@@ -1,0 +1,13 @@
+{
+  "background_color": "#fef5f5",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Antimax",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Antimax",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "id": "antimax",
+  "description": "Antimax — это новый стандарт цифровой свободы.\n• ⚡ Молниеносная доставка сообщений\n• 🛡️ Шифрование уровня «абсолют»\n• 🎨 Полная кастомизация интерфейса\nОбщайся без границ и ограничений. Твой мир — твои правила."
+}
